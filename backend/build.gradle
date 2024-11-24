@@ -27,6 +27,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa' // JPA 의존성
     runtimeOnly 'com.mysql:mysql-connector-j'                              // MySQL 커넥터
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0' // Web MVC용 Swagger UI
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
