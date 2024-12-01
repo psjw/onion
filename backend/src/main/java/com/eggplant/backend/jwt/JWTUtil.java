@@ -4,9 +4,11 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 
+@Component
 public class JWTUtil {
 
     private final String secretKey = "OQ2dPQJ9GDoNf0whfnN83as9UURfJXm6+dOwClGckXM="; // 반드시 환경 변수 또는 설정 파일로 관리하세요.
@@ -59,5 +61,13 @@ public class JWTUtil {
                 .setSigningKey(secretKey)
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    public String getUsernameFromToken(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(secretKey)
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.getSubject();
     }
 }

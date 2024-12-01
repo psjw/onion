@@ -1,5 +1,6 @@
 package com.eggplant.backend.service;
 
+import com.eggplant.backend.dto.SignUpUser;
 import com.eggplant.backend.entity.User;
 import com.eggplant.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,12 +24,12 @@ public class UserService {
      * @return 저장된 User 객체
      */
     @Transactional
-    public User createUser(String username, String email, String password) {
+    public User createUser(SignUpUser signUpUser) {
         // User 객체 생성
         User newUser = User.builder()
-                .username(username)
-                .email(email)
-                .password(passwordEncoder.encode(password))
+                .username(signUpUser.getUsername())
+                .email(signUpUser.getEmail())
+                .password(passwordEncoder.encode(signUpUser.getPassword()))
                 .lastLogin(LocalDateTime.now())
                 .build();
 
