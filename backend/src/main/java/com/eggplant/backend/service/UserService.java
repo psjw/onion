@@ -3,6 +3,7 @@ package com.eggplant.backend.service;
 import com.eggplant.backend.entity.User;
 import com.eggplant.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,7 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-
+    private final PasswordEncoder passwordEncoder;
     /**
      * 새로운 유저를 생성하고 저장하는 메소드
      * @param username 유저 이름
@@ -27,7 +28,7 @@ public class UserService {
         User newUser = User.builder()
                 .username(username)
                 .email(email)
-                .password(password)
+                .password(passwordEncoder.encode(password))
                 .lastLogin(LocalDateTime.now())
                 .build();
 
