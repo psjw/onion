@@ -2,26 +2,26 @@ package com.eggplant.backend.controller;
 
 import com.eggplant.backend.dto.SignUpUser;
 import com.eggplant.backend.entity.User;
-import com.eggplant.backend.jwt.JWTUtil;
+import com.eggplant.backend.jwt.JwtUtil;
 import com.eggplant.backend.service.CustomUserDetailsService;
+import com.eggplant.backend.service.JwtBlacklistService;
 import com.eggplant.backend.service.UserService;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @RestController
@@ -30,8 +30,9 @@ import java.util.List;
 public class UserController {
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
-    private final JWTUtil jwtUtil;
+    private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
+    private final JwtBlacklistService jwtBlacklistService;
 
     @GetMapping("")
     public ResponseEntity<List<User>> getUsers() {
@@ -74,13 +75,31 @@ public class UserController {
     @PostMapping("/token/validation")
     @ResponseStatus(HttpStatus.OK)
     public void jwtValidate(@RequestParam String token) {
-        if(!jwtUtil.validateToken(token)){
+        if (!jwtUtil.validateToken(token)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Token is invalid.");
         }
     }
 
     @PostMapping("/logout")
-    public void logout(HttpServletResponse response) {
+    public void logout(@RequestParam(required = false) String requestToken, @CookieValue("token") String cookieToken, HttpServletResponse response) {
+        String token = requestToken.isEmpty() ? cookieToken : requestToken;
+        LocalDateTime expiredDatetime = jwtUtil.getExpirationDateFromToken(cookieToken).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        String username = jwtUtil.getUsernameFromToken(token);
+        jwtBlacklistService.blacklistToken(cookieToken, expiredDatetime, username);
+        Cookie cookie = new Cookie("onion_token", null);
+        cookie.setHttpOnly(true);
+//        cookie.setSecure(true); //HTTPS에서만 전송
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+    }
+
+    @PostMapping("/logout/all")
+    public void logoutAll(@RequestParam(required = false) String requestToken, @CookieValue("token") String cookieToken, HttpServletResponse response) {
+        String token = requestToken.isEmpty() ? cookieToken : requestToken;
+        LocalDateTime expiredDatetime = jwtUtil.getExpirationDateFromToken(cookieToken).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        String username = jwtUtil.getUsernameFromToken(token);
+        jwtBlacklistService.blacklistToken(cookieToken, expiredDatetime,username);
         Cookie cookie = new Cookie("onion_token", null);
         cookie.setHttpOnly(true);
 //        cookie.setSecure(true); //HTTPS에서만 전송

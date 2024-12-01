@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 
 @Component
-public class JWTUtil {
+public class JwtUtil {
 
     private final String secretKey = "OQ2dPQJ9GDoNf0whfnN83as9UURfJXm6+dOwClGckXM="; // 반드시 환경 변수 또는 설정 파일로 관리하세요.
     private final long expirationTime = 1000 * 60 * 60; // 1시간 (밀리초)
@@ -69,5 +69,14 @@ public class JWTUtil {
                 .parseClaimsJws(token)
                 .getBody();
         return claims.getSubject();
+    }
+
+
+    public Date getExpirationDateFromToken(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(secretKey)
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.getExpiration();
     }
 }
